@@ -118,6 +118,11 @@ while [ "$#" -gt 0 ]; do
     shift
 done
 
+if [ "$#" = 0 ]; then
+    echo "This script needs at least an argument, if you don't know which one to choose take a look at ${BLUE}htb-setup -h${DC}"
+    return 1
+fi
+
 # Function to display messages based on the verbose flag
 print_msg() {
     if [ "$verbose" = true ]; then
