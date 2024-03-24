@@ -118,8 +118,8 @@ while [ "$#" -gt 0 ]; do
     shift
 done
 
-if [ "$#" = 0 ]; then
-    echo "This script needs at least an argument, if you don't know which one to choose take a look at ${BLUE}htb-setup -h${DC}"
+if [ ! -d $1 ]; then
+    echo "This script needs at least an option, if you don't know which one to choose take a look at ${BLUE}htb-setup -h${DC}"
     return 1
 fi
 
