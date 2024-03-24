@@ -41,9 +41,6 @@ user@host:~$
 [^3]: Required if you want to use `-a` flag in order to request data from HTB's APIs.
 
 # 🧬 Features
-When I start to hack a box I always create a folder named the same as the box at a specific path.
-Next thing I find myself doing is adding the entry with the boxname.htb to /etc/hosts file associated with its IP address.
-
 - create a directory with the same name as the box you're hacking in the designed path;
 - create a backup of your /etc/hosts file in case you want to preserve its content before the script changes it;
 - add the ip address and host name in /etc/hosts;
@@ -108,7 +105,7 @@ Source code available on Github at: https://github.com/Croluy/HTB-Initial-Script
 I've been using [HackTheBox](https://app.hackthebox.com) for a while now and I've noticed whenever I start working on machines I keep on repeating some stuff over and over again. That's why I've decided to take some time to automate the steps that I find myself doing so often whenever I prepare myself to hack a box. Also it was a great opportunity to challenge myself in creating a zsh script, since it's something quite new to me.<br>
 At the beginning it was meant to be a small script just for myself, but one day a friend said something like "_I'll code a script for when I'm starting a HTB machine_". This was my confirmation that what I had might be useful to others too. So I've started to make it more generic since until then it was tailored exactly for myself.<br>
 The more I was coding the more ideas were coming to my mind of possible features to add (as it often happens 👀). So what I initially thought would only be a small script, became something larger than I anticipated with API requests directly to HTB and other useful stuff.<br>
-Now I've decided to make it publicly available on GitHub and I'll keep working on it whenever I have time and new ideas, in order to make it as good as possible. If you want, feel free to fork this repo, experiment with the script and maybe even consider opening a pull request whenever you add some cool new feature.
+Now I've decided to make it publicly available on GitHub and I'll keep working on it whenever I have time and new ideas, aiming to make it as good as possible. If you want, feel free to fork this repo, experiment with the script and maybe even consider opening a pull request whenever you add some cool new feature.
 
 > [!NOTE]
-> 🌟 Created and maintined by [Croluy](https://github.com/Croluy)
+> 🌟 Created and maintained by [Croluy](https://github.com/Croluy)
