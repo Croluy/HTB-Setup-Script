@@ -36,16 +36,17 @@ print_manual() {
     echo "Required Arguments:"
     echo "  -b, --box-name <box_name>	Specify the name of the box."
     echo "\nOptional Arguments:"
-    echo "  -a, --api			Do API requests to HTB in order to get more infos about the box. Requires ${BLUE}HTB_API_TOKEN${DC} as environment variable."
-    echo "  -c, --connect			Connect to HTB's virtual private netowrk using the .ovpn file. Requires ${BLUE}HTB_OVPN_PATH${DC} as environment variable."
-    echo "  -h, --help			Display this help message."
-    echo "  -ip, --ip-address <box_ip>	Specify the IP address of the box."
-    echo "  -n, --nmap			Start an nmap scan (${BLUE}nmap -nC -sV -p- host${DC})."
-    echo "  -p, --path <path>		Specify the path where you want to create the box directory and where /etc/hosts will be backed up."
-    echo "  -u, --user <user>		Specify your host machine username."
-    echo "  -v, --verbose			Enable verbose mode (show all messages)."
-    echo "  -w, --writeup			Open Firefox and search for a writeup of the box."
-    echo "  -y,				Accept all requests automatically."
+    echo "  -a, --api                       Do API requests to HTB in order to get more infos about the box. Requires ${BLUE}HTB_API_TOKEN${DC} as environment variable."
+    echo "  -c, --connect                   Connect to HTB's virtual private netowrk using the .ovpn file. Requires ${BLUE}HTB_VPN_PATH${DC} as environment variable."
+    echo "  -e, --env                       Print the environment variables that can be used by this script."
+    echo "  -h, --help                      Display this help message."
+    echo "  -ip, --ip-address <box_ip>      Specify the IP address of the box."
+    echo "  -n, --nmap                      Start an nmap scan (${BLUE}nmap -nC -sV -p- host${DC})."
+    echo "  -p, --path <path>               Specify the path where you want to create the box directory and where /etc/hosts will be backed up."
+    echo "  -u, --user <user>               Specify your host machine username."
+    echo "  -v, --verbose                   Enable verbose mode (show all messages)."
+    echo "  -w, --writeup                   Open Firefox and search for a writeup of the box."
+    echo "  -y,                             Accept all requests automatically."
     echo "\nExamples:\n${BLUE}htb-setup -b Box1 -ip 10.10.129.23 -a"
     echo "htb-setup -b Box2 -v"
     echo "htb-setup -b Box3 -u kali -ip 10.10.10.45 -n${DC}"
@@ -64,6 +65,7 @@ writeup=false
 shell_name="${SHELL##*/}"
 vpn=false
 auto_yes=false
+show_env=false
 
 # Parsing command-line arguments with flags
 while [ "$#" -gt 0 ]; do
@@ -78,6 +80,9 @@ while [ "$#" -gt 0 ]; do
         ;;
     -c || --connect)
         vpn=true
+        ;;
+    -e || --env)
+        show_env=true
         ;;
     -h || --help)
         print_manual
@@ -189,6 +194,17 @@ if [ "$vpn" = true ]; then
     if [ $? = 1 ]; then
         return 1
     fi
+fi
+
+# Function to print the env variables
+print_env() {
+    echo "${BLUE}HTB_API_TOKEN${DC} =\t" $HTB_API_TOKEN
+    echo "${BLUE}HTB_VPN_PATH${DC} =\t" $HTB_VPN_PATH
+}
+
+# If user used -e flag print the env variables
+if [ "$show_env" = true ]; then
+    print_env
 fi
 
 # Check if the box name has been specified
