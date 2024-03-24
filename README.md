@@ -11,6 +11,9 @@ This script automates some common steps when starting to hack a machine on HackT
 - [jq](https://jqlang.github.io/jq/download/)<sup>*</sup> [^3]
 
 <sup>*</sup> = optional.
+[^1]: Required if you want to use `-c` flag in order to connect to HTB using your .ovpn file.
+[^2]: Required if you want to use `-w` flag in order to search for a writeup online.
+[^3]: Required if you want to use `-a` flag in order to request data from HTB's APIs.
 
 # ⚙️ Install and Use
 ## ＃ Installation
@@ -35,20 +38,6 @@ user@host:~$
 > At the moment this script can **not** be run as a bash script. This means that it will **not** work when you execute it with `sh` or `bash`.<br>
 > I do not plan on making it bash compatible anytime soon. If you want to make it a bash script feel free to fork the repo, tweak the script and open a pull request.
 > In which case I will most likely add that as a bash alternative, not a substitute of this one.
-
-[^1]: Required if you want to use `-c` flag in order to connect to HTB using your .ovpn file.
-[^2]: Required if you want to use `-w` flag in order to search for a writeup online.
-[^3]: Required if you want to use `-a` flag in order to request data from HTB's APIs.
-
-# 🧬 Features
-- create a directory with the same name as the box you're hacking in the designed path;
-- create a backup of your /etc/hosts file in case you want to preserve its content before the script changes it;
-- add the ip address and host name in /etc/hosts;
-- connect to HTB's virtual private network;
-- execute a basic nmap scan on the box and print it;
-- open a Firefox tab with the google search query about a writeup of the box;
-- do a ping test to verify if the box is reachable with the ip address provided by the user;
-- get some basic infos about the active machine (after you've spawned it from HTB's website) using HTB's API;
 
 ## 📚 Manual
 ```console
