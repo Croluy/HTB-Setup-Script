@@ -21,7 +21,7 @@ fi
 
 # Function to display the manual
 print_manual() {
-	echo "Usage: ${BLUE}htb-setup -b <box_name> [OPTIONS]${DC}"
+	echo "Usage: ${BLUE}htb-setup [OPTIONS]${DC}"
     echo "\nThis script automates some of the most common steps when starting to hack a machine on HackTheBox."
     echo "The script can:"
     echo "- create a directory with the same name as the box you're hacking in the designed path;"
@@ -33,28 +33,27 @@ print_manual() {
     echo "- get some basic infos about the active machine (after you've spawned it from HTB's website);"
     echo "- connect to HTB's virtual private network;"
     echo "When executing the script you will be asked for admin password because some commands require sudo permission.\n"
-    echo "Required Arguments:"
-    echo "  -b, --box-name <box_name>	Specify the name of the box."
-    echo "\nOptional Arguments:"
+    echo "OPTIONS:"
     echo "  -a, --api                       Do API requests to HTB in order to get more infos about the box. Requires ${BLUE}HTB_API_TOKEN${DC} as environment variable."
+    echo "  -b, --box-name <box_name>       Specify the name of the box."
     echo "  -c, --connect                   Connect to HTB's virtual private netowrk using the .ovpn file. Requires ${BLUE}HTB_VPN_PATH${DC} as environment variable."
     echo "  -e, --env                       Print the environment variables that can be used by this script."
     echo "  -h, --help                      Display this help message."
     echo "  -ip, --ip-address <box_ip>      Specify the IP address of the box."
     echo "  -n, --nmap                      Start an nmap scan (${BLUE}nmap -nC -sV -p- host${DC})."
-    echo "  -p, --path <path>               Specify the path where you want to create the box directory and where /etc/hosts will be backed up."
-    echo "  -u, --user <user>               Specify your host machine username."
+    echo "  -s, --setup                     Setup your environment variables and alias."
     echo "  -v, --verbose                   Enable verbose mode (show all messages)."
     echo "  -w, --writeup                   Open Firefox and search for a writeup of the box."
     echo "  -y,                             Accept all requests automatically."
     echo "\nExamples:\n${BLUE}htb-setup -b Box1 -ip 10.10.129.23 -a"
-    echo "htb-setup -b Box2 -v"
-    echo "htb-setup -b Box3 -u kali -ip 10.10.10.45 -n${DC}"
+    echo "htb-setup -b Box2 -v -y     "
+    echo "htb-setup -b Box3 -ip 10.10.10.45 -n" 
+    echo "htb-setup -c"
+    echo "htb-setup -b Box4 -w${DC}"
+    echo "\nSource code available on Github at: https://github.com/Croluy/HTB-Setup-Script"
 }
 
 # Initialize variables
-user="anonymous"
-htb_path="HTB/Labs/"
 box_name=""
 box_ip=""
 lowercase_box_name=""
@@ -66,6 +65,8 @@ shell_name="${SHELL##*/}"
 vpn=false
 auto_yes=false
 show_env=false
+setup=false
+has_to_end=false
 
 # Parsing command-line arguments with flags
 while [ "$#" -gt 0 ]; do
@@ -95,13 +96,8 @@ while [ "$#" -gt 0 ]; do
     -n || --nmap)
         nmap=true
         ;;
-    -p || --path)
-        htb_path=$2
-        shift
-        ;;
-    -u || --user)
-        user=$2
-        shift
+    -s || --setup)
+        setup=true
         ;;
     -v || --verbose)
         verbose=true
@@ -129,8 +125,8 @@ print_msg() {
     fi
 }
 
-# Function to connect to HTB vpn using .ovpn file
-connect_to_htb_vpn() {
+# If user used -c flag connect to vpn
+if [ "$vpn" = true ]; then
     # Check if openvpn is installed
     print_msg "Checking if openvpn is installed."
     if ! command -v openvpn &>/dev/null; then
@@ -186,36 +182,114 @@ connect_to_htb_vpn() {
         echo "${RED}ERROR: ${DC}Path to file .ovpn is wrong.\nYour path is $HTB_VPN_PATH"
         echo "Make sure the path to the file is correct, remember that the path assigned to HTB_VPN_PATH has to end with the file name."
     fi
-}
 
-# If user used -c flag connect to vpn
-if [ "$vpn" = true ]; then
-    connect_to_htb_vpn
-    if [ $? = 1 ]; then
-        return 1
-    fi
+    # Wait 8 sec, so user has time to input the password in the new terminal
+    # Otherwise the ping will result in packet loss
+    print_msg "Waiting 8 seconds for you to insert your password in the new terminal in order to connect to HTB's VPN."
+    sleep 8
 fi
-
-# Function to print the env variables
-print_env() {
-    echo "${BLUE}HTB_API_TOKEN${DC} =\t" $HTB_API_TOKEN
-    echo "${BLUE}HTB_VPN_PATH${DC} =\t" $HTB_VPN_PATH
-}
 
 # If user used -e flag print the env variables
 if [ "$show_env" = true ]; then
-    print_env
+    echo "${BLUE}HTB_API_TOKEN${DC} =\t" $HTB_API_TOKEN
+    echo "${BLUE}HTB_VPN_PATH${DC} =\t" $HTB_VPN_PATH
+    echo "${BLUE}HTB_LAB_PATH${DC} =\t" $HTB_LAB_PATH
+fi
+
+if [ "$setup" = true ]; then
+    something_to_set=false
+
+    # Check if variabile HTB_VPN_PATH is defined
+    print_msg "Checking if environment variable HTB_VPN_PATH is set."
+    if [[ ! -v HTB_VPN_PATH ]]; then
+        something_to_set=true
+        echo "\n${GREEN}WARNING: ${DC} HTB_VPN_PATH is not defined."
+        echo "Please set the variabile HTB_VPN_PATH with the path to the .ovpn file downloaded from HackTheBox."
+        if [ "$shell_name" = "zsh" ]; then
+            echo "Suggested command: ${BLUE}echo \"export HTB_VPN_PATH=${GREEN}/...EDIT THE PATH.../lab_user.ovpn${BLUE}\" >> ~/.zshrc && source ~/.zshrc${DC}"
+        else
+            # User has a different shell
+            echo "Suggested command: ${BLUE}export HTB_VPN_PATH=\"${GREEN}/...EDIT THE PATH.../lab_user.ovpn${BLUE}\"${DC}"
+        fi
+    fi
+
+    # Check if variabile HTB_LAB_PATH is defined
+    print_msg "Checking if environment variable HTB_LAB_PATH is set."
+    if [[ ! -v HTB_LAB_PATH ]]; then
+        something_to_set=true
+        echo "\n${GREEN}WARNING: ${DC} HTB_LAB_PATH is not defined."
+        echo "Please set the variabile HTB_LAB_PATH with the path to the directory where the script will create all the box folders."
+        if [ "$shell_name" = "zsh" ]; then
+            echo "Suggested command: ${BLUE}echo \"export HTB_LAB_PATH=${GREEN}/...EDIT THE PATH.../${BLUE}\" >> ~/.zshrc && source ~/.zshrc${DC}"
+        else
+            # User has a different shell
+            echo "Suggested command: ${BLUE}export HTB_LAB_PATH=\"${GREEN}/...EDIT THE PATH.../lab_user.ovpn${BLUE}\"${DC}"
+        fi
+    fi
+
+    # Check if variabile HTB_API_TOKEN is defined
+    print_msg "Checking if environment variable HTB_API_TOKEN is set."
+    if [[ ! -v HTB_API_TOKEN ]]; then
+        something_to_set=true
+        echo "\n${GREEN}WARNING: ${DC}Your HTB token is not set, you have to set it as an ENV variable in order to get infos from HTB APIs."
+        echo "Follow these steps to set your HTB token:"
+        echo "1. Go to https://app.hackthebox.com/ and log in"
+        echo "2. Click on your user profile (top right of the website)"
+        echo "3. Select 'Account Settings’"
+        echo "4. Find the 'App Tokens' menu (right side)"
+        echo "5. Click on 'Create App Token’"
+        echo "6. Give that token a name and set the expiration time"
+        echo "7. Copy the token to your clipboard"
+        if [ "$shell_name" = "zsh" ]; then
+            echo "8. Suggested command: ${BLUE}echo \"export HTB_API_TOKEN=${GREEN}token_here${BLUE}\" >> ~/.zshrc && source ~/.zshrc${DC}"
+        else
+            # User has a different shell
+            echo "8. Suggested command: ${BLUE}export HTB_API_TOKEN=\"${GREEN}token_here${BLUE}\"${DC}"
+        fi
+    fi
+
+    # Check if the alias has been set
+    if ! alias | grep -q "htb-setup"; then
+        something_to_set=true
+        echo "\n${GREEN}WARNING: ${DC}You have not set your alias for this script. If you do so it will be easier to run it."
+        if [ "$shell_name" = "zsh" ]; then
+            echo "Suggested command: ${BLUE}echo \"alias htb-setup=${GREEN}/...EDIT THE PATH.../setup-lab.sh${BLUE}\" >> ~/.zshrc && source ~/.zshrc${DC}"
+        else
+            # User has a different shell
+            echo "Suggested command: ${BLUE}alias htb-setup=\"${GREEN}/...EDIT THE PATH.../setup-lab.sh${BLUE}\"${DC}"
+        fi
+    fi
+
+    # If everything is set, communicate that to user
+    if [ "$something_to_set" = false ]; then
+        echo "Alias set.\nAll the environment variables are set. If you want to see them use the -e flag."
+    fi
+fi
+
+# User has used flags that require box name
+if [ -d "$box_ip" ] || [ "$api" = true ] || [ "$nmap" = true ] || [ "$writeup" = true ]; then
+    has_to_end=true
 fi
 
 # Check if the box name has been specified
-if [ -z "$box_name" ]; then
-    echo "${RED}ERROR:${DC} The box name has to be specified using the -b or --box-name flag."
+if [ -z "$box_name" ] && [ has_to_end = true ]; then
+    echo "${RED}ERROR:${DC} In order to proceed, box name has to be specified using the -b or --box-name flag."
     echo "Use ${BLUE}htb-setup -h${DC} to get help and some examples of the script."
     return 1
+elif [ -z "$box_name" ]; then
+    # User has not used any flag that need box name, end script
+    return 0
 fi
 
 # Path to the HTB folder
-box_path="/home/$user/$htb_path"
+box_path=""
+if [ -d "$HTB_LAB_PATH" ]; then
+    if [[ ! $HTB_LAB_PATH.endsWith("/") ]]; then
+        box_path=${HTB_LAB_PATH}/
+    else
+        box_path=$HTB_LAB_PATH
+    fi
+fi
 
 # Check if the directory already exists and ask the user
 if [ -d "$box_path$box_name" ]; then
@@ -239,6 +313,14 @@ cd "$box_path$box_name" || return
 
 # If user used -w flag do the writeup search
 if [ "$writeup" = true ]; then
+    # Check if firefox is installed
+    print_msg "Checking if firefox is installed."
+    if ! command -v firefox &>/dev/null; then
+        echo "${RED}ERROR: ${DC}firefox (CLI) is not installed."
+        echo "Please install it with ${BLUE}sudo apt install firefox${DC} and retry."
+        return 1
+    fi
+
     # Open Firefox with the writeup of the box
     print_msg "Opening Firefox with the query '$box_name htb writeup'."
     browser_query="$box_name htb writeup"
@@ -247,13 +329,14 @@ fi
 
 # If user used the -a flag do the api requests
 if [ "$api" = true ]; then
+    jq=true
     # Make sure jq is installed
     if ! command -v jq &> /dev/null; then
-        echo "${RED}ERROR: ${BLUE}jq${DC} is not installed. On most Linux distros you can install it with ${BLUE}sudo apt install jq${DC}."
-        return 1
+        echo "${RED}ERROR: ${BLUE}jq${DC} is not installed.\nYou can install it with ${BLUE}sudo apt install jq${DC}."
+        jq=false
     fi
 
-    if [[ -v HTB_API_TOKEN ]]; then
+    if [ -v HTB_API_TOKEN ] && [ "$jq" = true ]; then
         # Set the Token from ENV variable
         print_msg "Setting up your HTB token."
         token=$HTB_API_TOKEN
@@ -300,38 +383,33 @@ if [ "$api" = true ]; then
                     if [ "$(echo "$res" | jq 'length')" -eq 0 ]; then
                         echo "\tNo changes to the box since its release date."
                     else
-                        #titles=$(echo "$res" | jq -r '.info[].title')
                         data=$(echo "$res" | jq -r '.info[] | "\(.title)\t\(.description)\t\(.updated_at)"')
-                        #while IFS= read -r title; do
                         while IFS=$'\t' read -r title description updated_at; do
                             echo -e "\t${GREEN}Title:${DC} $title"
-                            echo -e "\t${GREEN}Description:${DC} $description"
+                            echo -e "\t${GREEN}Description:${DC} $description" | fold -s | sed '2,$s/^/\t\\ \ \ \t\ \ \ \ \ /'
                             on=$(date -d "$updated_at" "+%d/%m/%Y")
                             echo -e "\t${GREEN}On (dd/mm/yyyy):${DC} $on\n"
-                            #done <<< "$titles"
                         done <<< "$data"
                     fi
                 fi
             fi
         fi
-    else
+    elif [ "$jq" = true ]; then
         # HTB Token not set
         echo "${RED}ERROR: ${DC}Your HTB token is not set, you have to set it as an ENV variable in order to get infos from HTB APIs."
-        echo "Follow this steps to set your HTB token:"
+        echo "Follow these steps to set your HTB token:"
         echo "1. Go to https://app.hackthebox.com/ and log in"
         echo "2. Click on your user profile (top right of the website)"
-        echo "3. Click 'Account Settings’"
-        echo "4. Find 'App Tokens' menu (right side)"
+        echo "3. Select 'Account Settings’"
+        echo "4. Find the 'App Tokens' menu (right side)"
         echo "5. Click on 'Create App Token’"
         echo "6. Give that token a name and set the expiration time"
         echo "7. Copy the token to your clipboard"
-        if [ "$shell_name" = "bash" ]; then
-            echo "8. Execute ${BLUE}echo \"export HTB_API_TOKEN=${GREEN}token_here${BLUE}\" >> ~/.bashrc && source ~/.bashrc${DC}"
-        elif [ "$shell_name" = "zsh" ]; then
-            echo "8. Execute ${BLUE}echo \"export HTB_API_TOKEN=${GREEN}token_here${BLUE}\" >> ~/.zshrc && source ~/.zshrc${DC}"
+        if [ "$shell_name" = "zsh" ]; then
+            echo "8. Execute: ${BLUE}echo \"export HTB_API_TOKEN=${GREEN}token_here${BLUE}\" >> ~/.zshrc && source ~/.zshrc${DC}"
         else
             # User has a different shell
-            echo "8. Execute ${BLUE}export HTB_API_TOKEN=\"${GREEN}token_here${BLUE}\"${DC}"
+            echo "8. Execute: ${BLUE}export HTB_API_TOKEN=\"${GREEN}token_here${BLUE}\"${DC}"
         fi
         echo "9. Run this script again."
     fi
@@ -349,7 +427,7 @@ lowercase_box_entry="${lowercase_box_name}.htb"
 if ! grep -qi ".*[[:space:]]${lowercase_box_entry}$" /etc/hosts; then
     # Backup /etc/hosts
     print_msg "Creating a backup of /etc/hosts at $box_pathold_hosts."
-    sudo cp /etc/hosts "/home/$user/$htb_path/old_hosts"
+    sudo cp /etc/hosts "$box_path/old_hosts"
 
     # Check if there is a 127.0.0.1 file /etc/hosts
     if grep -q "^\(127\.0\.[0-9]\+\.[0-9]\+\|::1\).*localhost" /etc/hosts; then
@@ -382,14 +460,15 @@ else
     fi
 fi
 
-# Verify the reachability of the box with ping test
-echo "Quick ping test..."
-ping_result=$(ping -c 3 "${lowercase_box_name}.htb" | grep packet)
+# Verify the reachability of the box with a ping test
+print_msg "Quick ping test..."
+ping_result=$(ping -c 3 -l 3 "${box_ip}" | grep packet)
 packet_loss=$(echo "$ping_result" | cut -d "," -f 3 | cut -d "%" -f 1 | cut -d " " -f 2)
 
 # If the ping test produces packet loss, communicate that and return
 if [ "$packet_loss" != "0" ]; then
-    echo "${RED}ERROR:${DC} Packet loss detected in ping test.\nIP address (${BLUE}$box_ip${DC}) might be wrong or host is down."
+    echo "${RED}ERROR:${DC} Packet loss detected in ping test.\nIP address (${BLUE}$box_ip${DC}) might be wrong."
+    echo "If the IP address is correct, you should try to run this script with the -c flag in order to connect to HTB's VPN if you are not yet connected."
     return 1
 fi
 
