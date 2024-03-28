@@ -480,8 +480,8 @@ fi
 # If the user has set the nmap flag do the scan
 if [ "$nmap" = true ]; then
     # Perform the nmap scan and save it to file only if there was no packet loss in the ping test
-    echo "Nmap scan in progress...\nThis might take a while, please be patient."
-    sudo nmap -sC -sV -p- "${lowercase_box_name}.htb" > nmap
+    echo "Nmap scan in progress...\nThis might take a bit, please be patient."
+    sudo nmap -sC -sV -T4 "${lowercase_box_name}.htb" > nmap
 
     print_msg "The scan has been saved in $box_path$box_name as 'nmap'."
     if [ "$auto_yes" = false ]; then
