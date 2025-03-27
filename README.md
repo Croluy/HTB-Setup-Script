@@ -84,7 +84,7 @@ Source code available on Github at: https://github.com/Croluy/HTB-Initial-Script
 - htb-setup -b Box2 -v -y
   - Create Box2 folder, get verbose output, automatically accept (y) to all prompts where a choice is due.
 - htb-setup -b Box3 -ip 10.10.10.45 -n
-  - Create Box3 folder, add the entry to /etc/hosts with the ip address 10.10.129.23 and do a quick nmap scan on the box.
+  - Create Box3 folder, add the entry to /etc/hosts with the ip address 10.10.10.45 and do a quick nmap scan on the box.
 - htb-setup -c
   - Connect to HTB vpn using the .ovpn file
 - htb-setup -b Box4 -w
